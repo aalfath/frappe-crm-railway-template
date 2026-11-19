@@ -13,7 +13,7 @@ SITE="${FRAPPE_SITE:-crm.local}"
 : "${BACKEND_HOST:?BACKEND_HOST is required (private domain of the frappe-crm service)}"
 export SITE DB_NAME="${DB_NAME:-frappe_crm}" DB_PORT="${DB_PORT:-3306}"
 ls -1 apps > sites/apps.txt
-mkdir -p "sites/$SITE"
+mkdir -p "sites/$SITE/logs" "sites/$SITE/locks"
 env/bin/python - <<'PY'
 import json, os
 e = os.environ
