@@ -1,16 +1,18 @@
-# Local test of the Railway layout (not used by Railway). Run: docker compose -f compose.test.yml up --build
+# Local test of the Railway layout (not used by Railway).
+# Run: export TEST_DB_ROOT_PASSWORD=... TEST_DB_PASSWORD=... TEST_ADMIN_PASSWORD=... TEST_REDIS_PASSWORD=...
+#      docker compose -f compose.test.yml up --build
 services:
   mariadb:
     image: mariadb:11.8.9@sha256:d36f18d65a0459510b8b0f643b226a6d299e3206486e2b64ff20754a6d291707
     command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --skip-character-set-client-handshake, --innodb-snapshot-isolation=OFF]
-    environment: { MARIADB_ROOT_PASSWORD: testrootpw, MARIADB_AUTO_UPGRADE: "1" }
+    environment: { MARIADB_ROOT_PASSWORD: "${TEST_DB_ROOT_PASSWORD:?}", MARIADB_AUTO_UPGRADE: "1" }
     volumes: [db:/var/lib/mysql]
   redis-cache:
     image: redis:8.2.1@sha256:5fa2edb1e408fa8235e6db8fab01d1afaaae96c9403ba67b70feceb8661e8621
-    command: [redis-server, --requirepass, cachepw]
+    command: [redis-server, --requirepass, ${TEST_REDIS_PASSWORD:?}]
   redis-queue:
     image: redis:8.2.1@sha256:5fa2edb1e408fa8235e6db8fab01d1afaaae96c9403ba67b70feceb8661e8621
-    command: [redis-server, --requirepass, queuepw, --appendonly, "yes"]
+    command: [redis-server, --requirepass, ${TEST_REDIS_PASSWORD:?}, --appendonly, "yes"]
     volumes: [rq:/data]
   frappe-crm:
     build: ./frappe-crm
@@ -18,26 +20,26 @@ services:
     environment:
       PORT: "8080"
       DB_HOST: mariadb
-      DB_ROOT_PASSWORD: testrootpw
-      DB_PASSWORD: testsitepw
-      ADMIN_PASSWORD: testadminpw
-      REDIS_CACHE_URL: redis://default:cachepw@redis-cache:6379
-      REDIS_QUEUE_URL: redis://default:queuepw@redis-queue:6379
+      DB_ROOT_PASSWORD: "${TEST_DB_ROOT_PASSWORD:?}"
+      DB_PASSWORD: "${TEST_DB_PASSWORD:?}"
+      ADMIN_PASSWORD: "${TEST_ADMIN_PASSWORD:?}"
+      REDIS_CACHE_URL: redis://default:${TEST_REDIS_PASSWORD:?}@redis-cache:6379
+      REDIS_QUEUE_URL: redis://default:${TEST_REDIS_PASSWORD:?}@redis-queue:6379
       SOCKETIO_HOST: websocket
       RAILWAY_PUBLIC_DOMAIN: localhost:8080
     volumes: [sites:/home/frappe/frappe-bench/sites]
   websocket:
     build: ./websocket
     environment:
-      REDIS_CACHE_URL: redis://default:cachepw@redis-cache:6379
-      REDIS_QUEUE_URL: redis://default:queuepw@redis-queue:6379
+      REDIS_CACHE_URL: redis://default:${TEST_REDIS_PASSWORD:?}@redis-cache:6379
+      REDIS_QUEUE_URL: redis://default:${TEST_REDIS_PASSWORD:?}@redis-queue:6379
       BACKEND_HOST: frappe-crm
   scheduler:
     build: ./scheduler
     environment:
       DB_HOST: mariadb
-      DB_PASSWORD: testsitepw
-      REDIS_CACHE_URL: redis://default:cachepw@redis-cache:6379
-      REDIS_QUEUE_URL: redis://default:queuepw@redis-queue:6379
+      DB_PASSWORD: "${TEST_DB_PASSWORD:?}"
+      REDIS_CACHE_URL: redis://default:${TEST_REDIS_PASSWORD:?}@redis-cache:6379
+      REDIS_QUEUE_URL: redis://default:${TEST_REDIS_PASSWORD:?}@redis-queue:6379
       BACKEND_HOST: frappe-crm
 volumes: { db: {}, rq: {}, sites: {} }
