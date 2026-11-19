@@ -40,7 +40,7 @@ service. The CRM lives at `/crm`; Frappe's admin desk at `/app`.
 | MariaDB | `MARIADB_ROOT_PASSWORD` | generated |
 
 Optional tuning on `frappe-crm`: `GUNICORN_WORKERS` (2), `GUNICORN_THREADS` (4), `NGINX_WORKERS` (2), `CLIENT_MAX_BODY_SIZE` (50m).
-Email, Twilio/Exotel calling and WhatsApp are set up inside the CRM's settings after deploy.
+Email and Twilio/Exotel calling are set up inside the CRM's settings after deploy. WhatsApp needs Frappe's separate `frappe/whatsapp` app, which this template does not install.
 
 ## Updates
 
